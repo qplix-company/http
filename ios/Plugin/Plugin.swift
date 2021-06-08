@@ -3,7 +3,7 @@ import AudioToolbox
 import Capacitor
 
 @objc(CAPHttpPlugin)
-public class CAPHttpPlugin: CAPPlugin {
+public class CAPHttpPlugin: CAPPlugin, URLSessionTaskDelegate {
 
   @objc public func request(_ call: CAPPluginCall) {
     guard let urlValue = call.getString("url") else {
@@ -47,7 +47,10 @@ public class CAPHttpPlugin: CAPPlugin {
       return call.reject("Invalid URL")
     }
     
-    let task = URLSession.shared.downloadTask(with: url) { (downloadLocation, response, error) in
+    let urlSession = getUrlSession(call)
+    let task = urlSession.downloadTask(with: url) { (downloadLocation, response, error) in
+      urlSession.invalidateAndCancel()
+      
       guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
         call.reject("Invalid HTTP response code")
         return
@@ -132,7 +135,10 @@ public class CAPHttpPlugin: CAPPlugin {
 
     request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
     
-    let task = URLSession.shared.uploadTask(with: request, from: fullFormData) { (data, response, error) in
+    let urlSession = getUrlSession(call)
+    let task = urlSession.uploadTask(with: request, from: fullFormData) { (data, response, error) in
+      urlSession.invalidateAndCancel()
+      
       if error != nil {
         CAPLog.print("Error on upload file", data, response, error)
         call.reject("Error", "UPLOAD", error, [:])
@@ -248,9 +254,21 @@ public class CAPHttpPlugin: CAPPlugin {
     })
     call.resolve()
   }
+    
+  public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+    completionHandler(nil)
+  }
 
   
   /* PRIVATE */
+  
+  func getUrlSession(_ call: CAPPluginCall) -> URLSession {
+    let disableRedirects = call.getBool("disableRedirects") ?? false
+    if (!disableRedirects) {
+      return URLSession.shared
+    }
+    return URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
+  }
   
   // Handle GET operations
   func get(_ call: CAPPluginCall, _ url: inout URL, _ method: String, _ headers: [String:String], _ params: [String:String]) {
@@ -261,15 +279,18 @@ public class CAPHttpPlugin: CAPPlugin {
     request.httpMethod = method
     
     setRequestHeaders(&request, headers)
-
-    let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+           
+    let urlSession = getUrlSession(call)
+    let task = urlSession.dataTask(with: request) { (data, response, error) in
+      urlSession.invalidateAndCancel()
+      
       if error != nil {
         call.reject("Error", "GET", error, [:])
         return
       }
       
       let res = response as! HTTPURLResponse
-     
+      
       call.resolve(self.buildResponse(data, res))
     }
     
@@ -317,8 +338,11 @@ public class CAPHttpPlugin: CAPPlugin {
         return
       }
     }
-
-    let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+    
+    let urlSession = getUrlSession(call)
+    let task = urlSession.dataTask(with: request) { (data, response, error) in
+      urlSession.invalidateAndCancel()
+      
       if error != nil {
         call.reject("Error", "MUTATE", error, [:])
         return
