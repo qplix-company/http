@@ -21,9 +21,9 @@
 
 ## Maintainers
 
-| Maintainer | GitHub | Social |
-| -----------| -------| -------|
-| Max Lynch | [mlynch](https://github.com/mlynch) | [@maxlynch](https://twitter.com/maxlynch) |
+| Maintainer   | GitHub                                        | Social                                          |
+| ------------ | --------------------------------------------- | ----------------------------------------------- |
+| Max Lynch    | [mlynch](https://github.com/mlynch)           | [@maxlynch](https://twitter.com/maxlynch)       |
 | Thomas Vidas | [thomasvidas](https://github.com/thomasvidas) | [@thomasvidas](https://twitter.com/thomasvidas) |
 
 ## Installation
@@ -41,18 +41,25 @@ On Android, register the plugin in your main activity:
 import com.getcapacitor.plugin.http.Http;
 
 public class MainActivity extends BridgeActivity {
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     // Initializes the Bridge
-    this.init(savedInstanceState, new ArrayList<Class<? extends Plugin>>() {{
-      // Additional plugins you've installed go here
-      // Ex: add(TotallyAwesomePlugin.class);
-      add(Http.class);
-    }});
+    this.init(
+        savedInstanceState,
+        new ArrayList<Class<? extends Plugin>>() {
+          {
+            // Additional plugins you've installed go here
+            // Ex: add(TotallyAwesomePlugin.class);
+            add(Http.class);
+          }
+        }
+      );
   }
 }
+
 ```
 
 ## Configuration
@@ -79,11 +86,11 @@ const doGet = () => {
     method: 'GET',
     url: 'https://example.com/my/api',
     headers: {
-      'X-Fake-Header': 'Max was here'
+      'X-Fake-Header': 'Max was here',
     },
     params: {
-      'size': 'XL'
-    }
+      size: 'XL',
+    },
   });
 };
 
@@ -97,14 +104,14 @@ const doPost = () => {
     url: 'https://example.com/my/api',
     headers: {
       'X-Fake-Header': 'Max was here',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
     data: {
       foo: 'bar',
-      cool: true
-    }
+      cool: true,
+    },
   });
-}
+};
 
 const setCookie = async () => {
   const { Http } = Plugins;
@@ -112,9 +119,9 @@ const setCookie = async () => {
   const ret = await Http.setCookie({
     url: this.apiUrl('/cookie'),
     key: 'language',
-    value: 'en'
+    value: 'en',
   });
-}
+};
 
 const deleteCookie = async () => {
   const { Http } = Plugins;
@@ -123,7 +130,7 @@ const deleteCookie = async () => {
     url: this.apiUrl('/cookie'),
     key: 'language',
   });
-}
+};
 
 const clearCookies = async () => {
   const { Http } = Plugins;
@@ -131,13 +138,13 @@ const clearCookies = async () => {
   const ret = await Http.clearCookies({
     url: this.apiUrl('/cookie'),
   });
-}
+};
 
 const getCookies = async () => {
   const { Http } = Plugins;
 
   const ret = await Http.getCookies({
-    url: this.apiUrl('/cookie')
+    url: this.apiUrl('/cookie'),
   });
   console.log('Got cookies', ret);
   this.output = JSON.stringify(ret.value);
@@ -148,16 +155,16 @@ const downloadFile = async () => {
   const ret = await Http.downloadFile({
     url: 'https://example.com/path/to/download.pdf',
     filePath: 'document.pdf',
-    fileDirectory: FilesystemDirectory.Downloads
+    fileDirectory: FilesystemDirectory.Downloads,
   });
   if (ret.path) {
     const read = await Filesystem.readFile({
       path: 'download.pdf',
-      directory: FilesystemDirectory.Downloads
+      directory: FilesystemDirectory.Downloads,
     });
     // Data is here
   }
-}
+};
 
 const uploadFile = async () => {
   const { Http } = Plugins;
@@ -165,9 +172,9 @@ const uploadFile = async () => {
     url: 'https://example.com/path/to/upload.pdf',
     name: 'myFile',
     filePath: 'document.pdf',
-    fileDirectory: FilesystemDirectory.Downloads
+    fileDirectory: FilesystemDirectory.Downloads,
   });
-}
+};
 ```
 
 ## API Reference
@@ -198,5 +205,3 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-
-Test
