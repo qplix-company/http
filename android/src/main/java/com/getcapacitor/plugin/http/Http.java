@@ -36,6 +36,7 @@ import org.json.JSONException;
  */
 @NativePlugin(requestCodes = { Http.HTTP_REQUEST_DOWNLOAD_WRITE_PERMISSIONS, Http.HTTP_REQUEST_UPLOAD_READ_PERMISSIONS })
 public class Http extends Plugin {
+
     public static final int HTTP_REQUEST_DOWNLOAD_WRITE_PERMISSIONS = 9022;
     public static final int HTTP_REQUEST_UPLOAD_READ_PERMISSIONS = 9023;
 
@@ -51,7 +52,6 @@ public class Http extends Plugin {
     public void request(final PluginCall call) {
         new Thread(
             new Runnable() {
-
                 public void run() {
                     String url = call.getString("url");
                     String method = call.getString("method");
@@ -73,16 +73,13 @@ public class Http extends Plugin {
                 }
             }
         )
-        .start();
+            .start();
     }
 
     private void get(PluginCall call, String urlString, String method, JSObject headers, JSObject params) {
         try {
-            Integer connectTimeout = call.getInt("connectTimeout");
-            Integer readTimeout = call.getInt("readTimeout");
-
             URL url = new URL(urlString);
-            HttpURLConnection conn = makeUrlConnection(url, method, connectTimeout, readTimeout, headers, params);
+            HttpURLConnection conn = makeUrlConnection(call, url, method, headers, params);
 
             buildResponse(call, conn);
         } catch (MalformedURLException ex) {
@@ -96,13 +93,11 @@ public class Http extends Plugin {
 
     private void mutate(PluginCall call, String urlString, String method, JSObject headers) {
         try {
-            Integer connectTimeout = call.getInt("connectTimeout");
-            Integer readTimeout = call.getInt("readTimeout");
             JSObject data = call.getObject("data");
 
             URL url = new URL(urlString);
 
-            HttpURLConnection conn = makeUrlConnection(url, method, connectTimeout, readTimeout, headers, null);
+            HttpURLConnection conn = makeUrlConnection(call, url, method, headers, null);
 
             conn.setDoOutput(true);
 
@@ -120,15 +115,12 @@ public class Http extends Plugin {
         }
     }
 
-    private HttpURLConnection makeUrlConnection(
-        URL url,
-        String method,
-        Integer connectTimeout,
-        Integer readTimeout,
-        JSObject headers,
-        JSObject params
-    )
+    private HttpURLConnection makeUrlConnection(PluginCall call, URL url, String method, JSObject headers, JSObject params)
         throws Exception {
+        Integer connectTimeout = call.getInt("connectTimeout");
+        Integer readTimeout = call.getInt("readTimeout");
+        Boolean disableRedirects = call.getBoolean("disableRedirects");
+
         if (params != null) {
             url = setParams(url, params);
         }
@@ -144,6 +136,10 @@ public class Http extends Plugin {
 
         if (readTimeout != null) {
             conn.setReadTimeout(readTimeout);
+        }
+
+        if (disableRedirects != null) {
+            conn.setInstanceFollowRedirects(!disableRedirects);
         }
 
         setRequestHeaders(conn, headers);
@@ -162,9 +158,6 @@ public class Http extends Plugin {
             JSObject headers = call.getObject("headers");
             JSObject params = call.getObject("params");
 
-            Integer connectTimeout = call.getInt("connectTimeout");
-            Integer readTimeout = call.getInt("readTimeout");
-
             URL url = new URL(urlString);
 
             if (
@@ -175,7 +168,7 @@ public class Http extends Plugin {
 
                 final File file = FilesystemUtils.getFileObject(getContext(), filePath, fileDirectory);
 
-                HttpURLConnection conn = makeUrlConnection(url, "GET", connectTimeout, readTimeout, headers, params);
+                HttpURLConnection conn = makeUrlConnection(call, url, "GET", headers, params);
 
                 InputStream is = conn.getInputStream();
 
@@ -193,7 +186,6 @@ public class Http extends Plugin {
 
                 call.resolve(
                     new JSObject() {
-
                         {
                             put("path", file.getAbsolutePath());
                         }
@@ -248,7 +240,6 @@ public class Http extends Plugin {
         final Http httpPlugin = this;
         bridge.execute(
             new Runnable() {
-
                 @Override
                 public void run() {
                     if (requestCode == Http.HTTP_REQUEST_DOWNLOAD_WRITE_PERMISSIONS) {
@@ -268,8 +259,6 @@ public class Http extends Plugin {
         String filePath = call.getString("filePath");
         String fileDirectory = call.getString("fileDirectory", FilesystemUtils.DIRECTORY_DOCUMENTS);
         String name = call.getString("name", "file");
-        Integer connectTimeout = call.getInt("connectTimeout");
-        Integer readTimeout = call.getInt("readTimeout");
         JSObject headers = call.getObject("headers");
         JSObject params = call.getObject("params");
         JSObject data = call.getObject("data");
@@ -285,7 +274,7 @@ public class Http extends Plugin {
                 this.freeSavedCall();
                 File file = FilesystemUtils.getFileObject(getContext(), filePath, fileDirectory);
 
-                HttpURLConnection conn = makeUrlConnection(url, "POST", connectTimeout, readTimeout, headers, null);
+                HttpURLConnection conn = makeUrlConnection(call, url, "POST", headers, null);
                 conn.setDoOutput(true);
 
                 FormUploader builder = new FormUploader(conn);
