@@ -122,6 +122,10 @@ public class CapacitorHttpUrlConnection implements ICapacitorHttpUrlConnection {
         connection.setReadTimeout(timeout);
     }
 
+    public void setDisableRedirects(boolean disableRedirects) {
+        connection.setInstanceFollowRedirects(!disableRedirects);
+    }
+
     /**
      * Sets the request headers given a JSObject of key-value pairs
      * @param headers the JSObject values to map to the HttpUrlConnection request headers
