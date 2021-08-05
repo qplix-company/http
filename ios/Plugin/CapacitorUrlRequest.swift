@@ -1,7 +1,20 @@
 import Foundation
 import Capacitor
 
-public class CapacitorUrlRequest {
+public class CapacitorUrlRequest: NSObject, URLSessionTaskDelegate {
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        completionHandler(nil)
+    }
+    
+    public func getUrlSession(_ call: CAPPluginCall) -> URLSession {
+      let disableRedirects = call.getBool("disableRedirects") ?? false
+      if (!disableRedirects) {
+        return URLSession.shared
+      }
+      return URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
+    }
+    
     private var request: URLRequest;
     private var headers: [String:String];
     
