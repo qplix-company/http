@@ -82,6 +82,10 @@ export class HttpWeb extends WebPlugin {
       options,
     ) => Cookie.clearCookies();
     /**
+     * Clears out cookies by setting them to expire immediately
+     */
+    this.clearAllCookies = async () => Cookie.clearCookies();
+    /**
      * Uploads a file through a POST request
      * @param options TODO
      */

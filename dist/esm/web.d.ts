@@ -78,6 +78,10 @@ export declare class HttpWeb extends WebPlugin implements HttpPlugin {
    */
   clearCookies: (options: HttpMultiCookiesOptions) => Promise<void>;
   /**
+   * Clears out cookies by setting them to expire immediately
+   */
+  clearAllCookies: () => Promise<void>;
+  /**
    * Uploads a file through a POST request
    * @param options TODO
    */

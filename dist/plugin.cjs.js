@@ -367,6 +367,10 @@ class HttpWeb extends core.WebPlugin {
       options,
     ) => clearCookies();
     /**
+     * Clears out cookies by setting them to expire immediately
+     */
+    this.clearAllCookies = async () => clearCookies();
+    /**
      * Uploads a file through a POST request
      * @param options TODO
      */
